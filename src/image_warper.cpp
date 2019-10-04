@@ -6,35 +6,21 @@
 using namespace cv;
 
 
-ImageWarper::ImageWarper()
+void loadCtrPnts()
 {
+	std::vector<cv::Point2f> ctrPntSrc, ctrPntDst;
 
-}
+	ctrPntSrc.push_back(Point2f(100, 100));
+	ctrPntSrc.push_back(Point2f(100, 400));
+	ctrPntSrc.push_back(Point2f(400, 100));
+	ctrPntSrc.push_back(Point2f(400, 400));
 
+	ctrPntDst.push_back(Point2f(50, 50));
+	ctrPntDst.push_back(Point2f(50, 450));
+	ctrPntDst.push_back(Point2f(450, 50));
+	ctrPntDst.push_back(Point2f(450, 450));
 
-ImageWarper::~ImageWarper()
-{
-
-}
-
-
-cv::Mat ImageWarper::loadImage(std::string img_path)
-{
-	return imread(img_path);
-}
-
-
-void ImageWarper::loadCtrPnts()
-{
-	_ctrPntSrc.push_back(Point2f(100, 100));
-	_ctrPntSrc.push_back(Point2f(100, 400));
-	_ctrPntSrc.push_back(Point2f(400, 100));
-	_ctrPntSrc.push_back(Point2f(400, 400));
-
-	_ctrPntDst.push_back(Point2f(50, 50));
-	_ctrPntDst.push_back(Point2f(50, 450));
-	_ctrPntDst.push_back(Point2f(450, 50));
-	_ctrPntDst.push_back(Point2f(450, 450));
+	return; 
 }
 
 // void ImageWarper::medianFilter(Mat& image, int filter)

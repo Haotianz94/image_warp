@@ -2,7 +2,6 @@
 
 int main()
 {
-	ImageWarperMLS warper;
-	warper.test();
+	testMLS();
 	return 0;
 }

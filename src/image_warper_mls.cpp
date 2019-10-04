@@ -1,21 +1,9 @@
 #include "image_warper_mls.h"
 
 using namespace cv;
+using namespace std;
 
-
-ImageWarperMLS::ImageWarperMLS()
-{
-	// ImageWarper();
-}
-
-
-ImageWarperMLS::~ImageWarperMLS()
-{
-	// ~ImageWarper();
-}
-
-
-Mat ImageWarperMLS::warp(Mat& imgIn)
+Mat warpMLS(Mat& imgIn)
 {
 	// for(auto& pos : oriPoints)
 	// {
@@ -25,27 +13,30 @@ Mat ImageWarperMLS::warp(Mat& imgIn)
 	// {
 	// 	dest_points.push_back(Point(pos.x, pos.y));
 	// }
-	_frameW = imgIn.cols;
-	_frameH = imgIn.rows;
-	std::cout << _frameW << " " << _frameH << std::endl;
 
-	Mat imgOut(_frameH, _frameW, CV_8UC3, Scalar(0, 0, 0));
-	for(int y = 0; y <= _frameH-1; y ++)
-		for(int x = 0; x <= _frameW-1; x ++)
+	int frameW = imgIn.cols;
+	int frameH = imgIn.rows;
+	cout << frameW << " " << frameH << endl;
+
+	vector<cv::Point2f> ctrPntSrc, ctrPntDst;
+
+	Mat imgOut(frameH, frameW, CV_8UC3, Scalar(0, 0, 0));
+	for(int y = 0; y <= frameH-1; y ++)
+		for(int x = 0; x <= frameW-1; x ++)
 		{
-			if(x == _frameW - 1)
+			if(x == frameW - 1)
 				std::cout << y << std::endl;
 
-			CvPoint2D32f q = _warpPnt(cv::Point(x, y));
-			if(!BOUNDED(q.x, q.y, _frameW, _frameH))
+			CvPoint2D32f q = warpPnt(cv::Point(x, y), ctrPntSrc, ctrPntDst);
+			if(!BOUNDED(q.x, q.y, frameW, frameH))
 				continue;
-			imgOut.at<Vec3b>(y, x) = _bilinerInterpolate(q, imgIn);
+			imgOut.at<Vec3b>(y, x) = bilinerInterpolate(q, imgIn);
 		}
 	return imgOut;
 }
 
 
-Vec3b ImageWarperMLS::_bilinerInterpolate(Point2f pos, Mat& img)
+Vec3b bilinerInterpolate(Point2f pos, Mat& img)
 {
 	float X = pos.x;
 	float Y = pos.y;
@@ -61,15 +52,15 @@ Vec3b ImageWarperMLS::_bilinerInterpolate(Point2f pos, Mat& img)
 }
 
 
-CvPoint2D32f ImageWarperMLS::_warpPnt(CvPoint2D32f point)
+CvPoint2D32f warpPnt(CvPoint2D32f point, vector<cv::Point2f>& ctrPntSrc, vector<cv::Point2f>& ctrPntDst)
 {
-		int nSize=_ctrPntDst.size();
+		int nSize=ctrPntDst.size();
 		//compute weight
 		std::vector<double> Weight;
 		for (int i1=0;i1<nSize;i1++)
 		{
-			double dtemp=( pow(	static_cast<double>(point.x-_ctrPntDst[i1].x),  2 )+
-										   pow(	static_cast<double>(point.y-_ctrPntDst[i1].y),	2)		);
+			double dtemp=( pow(	static_cast<double>(point.x-ctrPntDst[i1].x),  2 )+
+										   pow(	static_cast<double>(point.y-ctrPntDst[i1].y),	2)		);
 
 			if(dtemp==0.0)
 			{
@@ -87,10 +78,10 @@ CvPoint2D32f ImageWarperMLS::_warpPnt(CvPoint2D32f point)
 		for (int i2=0;i2<nSize;i2++)
 		{
 			dSumW=dSumW+Weight[i2];
-			dSumPx=dSumPx+Weight[i2]*(double)_ctrPntDst[i2].x;
-			dSumPy=dSumPy+Weight[i2]*(double)_ctrPntDst[i2].y;
-			dSumQx=dSumQx+Weight[i2]*(double)_ctrPntSrc[i2].x;
-			dSumQy=dSumQy+Weight[i2]*(double)_ctrPntSrc[i2].y;
+			dSumPx=dSumPx+Weight[i2]*(double)ctrPntDst[i2].x;
+			dSumPy=dSumPy+Weight[i2]*(double)ctrPntDst[i2].y;
+			dSumQx=dSumQx+Weight[i2]*(double)ctrPntSrc[i2].x;
+			dSumQy=dSumQy+Weight[i2]*(double)ctrPntSrc[i2].y;
 		}
 		CvPoint2D32f PStar,QStar;
 		PStar.x=(dSumPx/dSumW);
@@ -102,12 +93,12 @@ CvPoint2D32f ImageWarperMLS::_warpPnt(CvPoint2D32f point)
 		for (int i3=0;i3<nSize;i3++)
 		{
 			CvPoint2D32f tempP;
-			tempP.x=_ctrPntDst[i3].x-PStar.x;
-			tempP.y=_ctrPntDst[i3].y-PStar.y;
+			tempP.x=ctrPntDst[i3].x-PStar.x;
+			tempP.y=ctrPntDst[i3].y-PStar.y;
 			PHat.push_back(tempP);
 			CvPoint2D32f tempQ;
-			tempQ.x=_ctrPntSrc[i3].x-QStar.x;
-			tempQ.y=_ctrPntSrc[i3].y-QStar.y;
+			tempQ.x=ctrPntSrc[i3].x-QStar.x;
+			tempQ.y=ctrPntSrc[i3].y-QStar.y;
 			QHat.push_back(tempQ);
 		}
 		//compute the inverse Matrix
@@ -149,15 +140,17 @@ CvPoint2D32f ImageWarperMLS::_warpPnt(CvPoint2D32f point)
 }
 
 
-void ImageWarperMLS::test()
+void testMLS()
 {
 	
-	Mat imgIn = loadImage("../test.jpg");
+	Mat imgIn = imread("./test.jpg");
 	std::cout << "Load image..." << std::endl;
 
-	loadCtrPnts();
-	std::cout << "Load ctr points..." << std::endl;
+	Mat imgOut = warpMLS(imgIn);
+	imwrite("./warp_MLS.jpg", imgOut);	
+}
 
-	Mat imgOut = warp(imgIn);
-	imwrite("../warp_MLS.jpg", imgOut);	
+
+double testAdd(double a, double b){
+	return a + b;
 }
