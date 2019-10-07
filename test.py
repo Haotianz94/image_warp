@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import image_warp.image_warp as image_warp
+import image_warp
 
 # Test 1
 print(image_warp.test_add(1, 1))
