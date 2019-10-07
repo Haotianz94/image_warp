@@ -35,7 +35,7 @@ SET(SOURCES
 #    ${PROJECT_SOURCE_DIR}/src/image_warper_asap.cpp
 	${PROJECT_SOURCE_DIR}/src/image_warper_mls.cpp
 	${PROJECT_SOURCE_DIR}/src/image_warper.cpp
-	${PROJECT_SOURCE_DIR}/src/wrap.cpp
+	${PROJECT_SOURCE_DIR}/src/python_wrap.cpp
 	${PROJECT_SOURCE_DIR}/src/ndarray_converter.cpp
 )
 
@@ -56,5 +56,5 @@ add_library(image_warp SHARED ${SOURCES})
 target_link_libraries(image_warp ${PYTHON_LIBRARIES} ${OpenCV_LIBS})
 SET_TARGET_PROPERTIES(image_warp PROPERTIES PREFIX "")
 
-install(TARGETS image_warp DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/image_warp)
+install(TARGETS image_warp DESTINATION ~/.local/lib/python3.6/site-packages/)
 

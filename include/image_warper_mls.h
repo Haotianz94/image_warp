@@ -31,11 +31,18 @@ struct matrix2
 // };
 
 
-CvPoint2D32f warpPnt(CvPoint2D32f, std::vector<cv::Point2f>&, std::vector<cv::Point2f>&);
+// private functions
+CvPoint2D32f warpPnt(CvPoint2D32f);
 
 cv::Vec3b bilinerInterpolate(cv::Point2f, cv::Mat&);
 
 cv::Mat warpMLS(cv::Mat&);
+
+
+// public functions
+cv::Mat warpMLSInterface(cv::Mat, cv::Mat, cv::Mat);
+
+cv::Mat testIO(cv::Mat, cv::Mat);
 
 void testMLS();
 

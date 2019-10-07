@@ -21,7 +21,11 @@ PYBIND11_PLUGIN(image_warp)
     m.def("test_add", &testAdd, "A function that adds two double",
         py::arg("a"), py::arg("b"));
 
-    m.def("test_mls", &testMLS, "MLS image warp");
+    m.def("test_mls", &testMLS, "MLS image warp test");
+
+    m.def("test_io", &testIO, "test IO", py::arg("a"), py::arg("b"));
+
+    m.def("warp_mls", &warpMLSInterface, "MLS image warp API", py::arg("img"), py::arg("ctr_src"), py::arg("ctr_dst"));
 
    	return m.ptr();
 }

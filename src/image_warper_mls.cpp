@@ -3,31 +3,23 @@
 using namespace cv;
 using namespace std;
 
+
+vector<Point2f> ctrPntSrc, ctrPntDst;
+
 Mat warpMLS(Mat& imgIn)
 {
-	// for(auto& pos : oriPoints)
-	// {
-	// 	src_points.push_back(Point(pos.x, pos.y));
-	// }
-	// for(auto& pos : tgtPoints)
-	// {
-	// 	dest_points.push_back(Point(pos.x, pos.y));
-	// }
-
 	int frameW = imgIn.cols;
 	int frameH = imgIn.rows;
-	cout << frameW << " " << frameH << endl;
-
-	vector<cv::Point2f> ctrPntSrc, ctrPntDst;
 
 	Mat imgOut(frameH, frameW, CV_8UC3, Scalar(0, 0, 0));
 	for(int y = 0; y <= frameH-1; y ++)
 		for(int x = 0; x <= frameW-1; x ++)
 		{
-			if(x == frameW - 1)
-				std::cout << y << std::endl;
+			// if(x == frameW - 1)
+			// 	std::cout << y << std::endl;
 
-			CvPoint2D32f q = warpPnt(cv::Point(x, y), ctrPntSrc, ctrPntDst);
+			CvPoint2D32f q = warpPnt(cv::Point(x, y));
+
 			if(!BOUNDED(q.x, q.y, frameW, frameH))
 				continue;
 			imgOut.at<Vec3b>(y, x) = bilinerInterpolate(q, imgIn);
@@ -52,7 +44,7 @@ Vec3b bilinerInterpolate(Point2f pos, Mat& img)
 }
 
 
-CvPoint2D32f warpPnt(CvPoint2D32f point, vector<cv::Point2f>& ctrPntSrc, vector<cv::Point2f>& ctrPntDst)
+CvPoint2D32f warpPnt(CvPoint2D32f point)
 {
 		int nSize=ctrPntDst.size();
 		//compute weight
@@ -146,11 +138,45 @@ void testMLS()
 	Mat imgIn = imread("./test.jpg");
 	std::cout << "Load image..." << std::endl;
 
+	ctrPntSrc.push_back(Point2f(100, 100));
+	ctrPntSrc.push_back(Point2f(100, 400));
+	ctrPntSrc.push_back(Point2f(400, 100));
+	ctrPntSrc.push_back(Point2f(400, 400));
+
+	ctrPntDst.push_back(Point2f(50, 50));
+	ctrPntDst.push_back(Point2f(50, 450));
+	ctrPntDst.push_back(Point2f(450, 50));
+	ctrPntDst.push_back(Point2f(450, 450));
+
 	Mat imgOut = warpMLS(imgIn);
 	imwrite("./warp_MLS.jpg", imgOut);	
 }
 
 
+Mat warpMLSInterface(Mat imgIn, Mat ctrPntSrcMat, Mat ctrPntDstMat)
+{
+	assert("Control point sets size does not match!" && ctrPntSrcMat.rows == ctrPntDstMat.rows);
+	ctrPntSrc.clear();
+	ctrPntDst.clear();
+
+	for(int i = 0; i < ctrPntSrcMat.rows; i ++)
+	{	
+		ctrPntSrc.push_back(Point2f(ctrPntSrcMat.at<double>(i, 0), ctrPntSrcMat.at<double>(i, 1)));
+		ctrPntDst.push_back(Point2f(ctrPntDstMat.at<double>(i, 0), ctrPntDstMat.at<double>(i, 1)));
+	}
+
+	return warpMLS(imgIn);
+}
+
+
 double testAdd(double a, double b){
 	return a + b;
+}
+
+
+cv::Mat testIO(cv::Mat a, cv::Mat b)
+{
+	cout << a.cols << " " << a.rows << endl;
+	cout << b.cols << " " << b.rows << endl;
+	return a.clone();
 }
