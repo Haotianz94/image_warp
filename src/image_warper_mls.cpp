@@ -1,3 +1,4 @@
+#include <omp.h>
 #include "image_warper_mls.h"
 
 using namespace cv;
@@ -8,10 +9,13 @@ vector<Point2f> ctrPntSrc, ctrPntDst;
 
 Mat warpMLS(Mat& imgIn)
 {
+	omp_set_num_threads(16);
+	
 	int frameW = imgIn.cols;
 	int frameH = imgIn.rows;
 
 	Mat imgOut(frameH, frameW, CV_8UC3, Scalar(0, 0, 0));
+	#pragma omp parallel for
 	for(int y = 0; y <= frameH-1; y ++)
 		for(int x = 0; x <= frameW-1; x ++)
 		{
@@ -34,7 +38,7 @@ Vec3b bilinerInterpolate(Point2f pos, Mat& img)
 	float Y = pos.y;
 	
 	if(X < 0 || X >= img.cols-1 || Y < 0 || Y >= img.rows-1)
-		return Vec3b(255, 255, 255);
+		return Vec3b(0, 0, 0);
 
 	Vec3b p,q,r;
 	p = img.at<Vec3b>((int)Y, (int)X) + (X - (int)X) * (img.at<Vec3b>((int)Y ,(int)X + 1) - img.at<Vec3b>((int)Y, (int)X));
