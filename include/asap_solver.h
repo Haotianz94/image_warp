@@ -1,9 +1,9 @@
 #ifndef ASAP_SOLVER_H
 #define ASAP_SOLVER_H
 
-#include "Mesh.h"
-using namespace cv;
-//#include "BundledCameras.h"
+#include "mesh.h"
+
+#include "ceres/ceres.h"
 
 using ceres::NumericDiffCostFunction;
 using ceres::CENTRAL;
@@ -20,7 +20,7 @@ using ceres::Solve;
 // 
 struct CostDataTermXY{
 public:
-	CostDataTermXY(vector<double> & weights, Point2f control_pt);
+	CostDataTermXY(std::vector<double> & weights, cv::Point2f control_pt);
 
 	template <typename T> bool operator()(const T* const x00,
 		const T* const x10,
@@ -52,7 +52,7 @@ private:
 
 struct CostDataTermX{
 public:
-	CostDataTermX(vector<double> & weights, Point2f control_pt);
+	CostDataTermX(std::vector<double> & weights, cv::Point2f control_pt);
 
 	template <typename T> bool operator()(const T* const x00,
 									  const T* const x10,
@@ -83,7 +83,7 @@ private:
 
 struct CostDataTermY{
 public:
-	CostDataTermY(vector<double> & weights, Point2f control_pt);
+	CostDataTermY(std::vector<double> & weights, cv::Point2f control_pt);
 
 	template <typename T> bool operator()(const T* const y00,
 		const T* const y10,
@@ -257,21 +257,21 @@ public:
 	ASAPSolver(const Mesh & mesh);
 	
 	
-	void solve(vector<Point2f> & pIn, vector<Point2f> & pOut, Mat_<Vec2f> &deformed_mesh, double lambda = 1);
+	void solve(std::vector<cv::Point2f> & pIn, std::vector<cv::Point2f> & pOut, cv::Mat_<cv::Vec2f> &deformed_mesh, double lambda = 1);
 
-	//double solve_adaptive(vector<Point2f> & pIn, vector<Point2f> & pOut, Mat_<Vec2f> &deformed_mesh);
-	void estimateBundledCameras(Mat_<Vec2f>& deformed_mesh, vector<vector<Mat>> & bundled_cameras);
+	//double solve_adaptive(std::vector<cv::Point2f> & pIn, std::vector<cv::Point2f> & pOut, cv::Mat_<cv::Vec2f> &deformed_mesh);
+	// void estimateBundledCameras(cv::Mat_<cv::Vec2f>& deformed_mesh, std::vector<std::vector<cv::Mat>> & bundled_cameras);
 
-	//void warpBruteForce(Mat & imgIn, Mat_<Vec2f> & deformed_mesh, Mat & imgOut, bool bShowGrid = 0, bool bigger_bord = 0);
+	void warpBruteForce(cv::Mat & imgIn, cv::Mat_<cv::Vec2f> & deformed_mesh, cv::Mat & imgOut, bool bShowGrid = 0, bool bigger_bord = 0);
 
-	//void warpViaBundledCameras(Mat & imgIn, vector<vector<Mat>> & bundled_cameras, Mat & imgOut, bool bShowGrid = 0, bool bigger_bord = 0);
-	//void warpViaBundledCameras(Mat &imgIn, BundledCameras bc, Mat & imgOut, bool bShowGrid = 0, bool bigger_bord =0);
+	//void warpViaBundledCameras(cv::Mat & imgIn, std::vector<std::vector<cv::Mat>> & bundled_cameras, cv::Mat & imgOut, bool bShowGrid = 0, bool bigger_bord = 0);
+	//void warpViaBundledCameras(cv::Mat &imgIn, BundledCameras bc, cv::Mat & imgOut, bool bShowGrid = 0, bool bigger_bord =0);
 
 private:
 	//return 4 surrounding vertices index given a point
-	vector<Vec2i> gridIdx2verticesIdx(Point2f p);
+	std::vector<cv::Vec2i> gridIdx2verticesIdx(cv::Point2f p);
 	Mesh m_mesh;
-	//vector<vector<float>> m_vertices_to_solve;
+	//std::vector<std::vector<float>> m_vertices_to_solve;
 
 };
 

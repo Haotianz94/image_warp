@@ -1,5 +1,7 @@
-#include "ASAPSolver.h"
+#include "asap_solver.h"
 
+using namespace std;
+using namespace cv;
 
 //#include "Features2DFunction.h"
 
@@ -243,15 +245,15 @@ vector<Vec2i> ASAPSolver::gridIdx2verticesIdx( Point2f p )
 	return verticesIdx;
 }
 
-/*
+
 bool ok(Mat &mask, int x, int y){
 	if(x<0||x>=mask.cols||y<0||y>=mask.rows)
 		return 0;
 	if(mask.at<uchar>(y,x)==255)
 		return 1;
 	return 0;
-}*/
-/*
+}
+
 void ASAPSolver::warpBruteForce( Mat & imgIn, Mat_<Vec2f> & deformed_mesh, Mat & imgOut, bool bShowGrid, bool bigger_bord )
 {   
 
@@ -310,45 +312,45 @@ void ASAPSolver::warpBruteForce( Mat & imgIn, Mat_<Vec2f> & deformed_mesh, Mat &
 		}
 		
 	}
-}*/
-
-void ASAPSolver::estimateBundledCameras(Mat_<Vec2f>& deformed_mesh, vector<vector<Mat>> & bundled_cameras)
-{
-
-	int ngx = m_mesh.getGridNumX();
-	int ngy = m_mesh.getGridNumY();
-
-	bundled_cameras.resize(ngy);
-
-	FOR(i, 0, ngy)
-		bundled_cameras[i].resize(ngx);
-	FOR(y, 0, ngy){
-		FOR(x, 0, ngx){
-			vector<Point2f> srcPts, tarPts;
-			srcPts.push_back(m_mesh.getGrid(x,y).getTL());
-			srcPts.push_back(m_mesh.getGrid(x,y).getDL());
-			srcPts.push_back(m_mesh.getGrid(x,y).getTR());
-			srcPts.push_back(m_mesh.getGrid(x,y).getDR());
-			tarPts.push_back(Point2f(deformed_mesh[y][x][0],deformed_mesh[y][x][1]));
-			tarPts.push_back(Point2f(deformed_mesh[y+1][x][0],deformed_mesh[y+1][x][1]));
-			tarPts.push_back(Point2f(deformed_mesh[y][x+1][0],deformed_mesh[y][x+1][1]));
-			tarPts.push_back(Point2f(deformed_mesh[y+1][x+1][0],deformed_mesh[y+1][x+1][1]));
-		/*	FOR(i, 0, 4){
-				cout<<srcPts[i]<<" ";
-			}
-			cout<<endl;
-			FOR(i, 0, 4){
-				cout<<tarPts[i]<<" ";
-			}
-			cout<<endl;*/
-			//vector<int> good_idx;
-			Mat m = getPerspectiveTransform(srcPts, tarPts);
-			m.convertTo(bundled_cameras[y][x], CV_32FC1);
-
-			//cout<<bundled_cameras[y][x]<<endl;
-		}
-	}
 }
+
+// void ASAPSolver::estimateBundledCameras(Mat_<Vec2f>& deformed_mesh, vector<vector<Mat>> & bundled_cameras)
+// {
+
+// 	int ngx = m_mesh.getGridNumX();
+// 	int ngy = m_mesh.getGridNumY();
+
+// 	bundled_cameras.resize(ngy);
+
+// 	FOR(i, 0, ngy)
+// 		bundled_cameras[i].resize(ngx);
+// 	FOR(y, 0, ngy){
+// 		FOR(x, 0, ngx){
+// 			vector<Point2f> srcPts, tarPts;
+// 			srcPts.push_back(m_mesh.getGrid(x,y).getTL());
+// 			srcPts.push_back(m_mesh.getGrid(x,y).getDL());
+// 			srcPts.push_back(m_mesh.getGrid(x,y).getTR());
+// 			srcPts.push_back(m_mesh.getGrid(x,y).getDR());
+// 			tarPts.push_back(Point2f(deformed_mesh[y][x][0],deformed_mesh[y][x][1]));
+// 			tarPts.push_back(Point2f(deformed_mesh[y+1][x][0],deformed_mesh[y+1][x][1]));
+// 			tarPts.push_back(Point2f(deformed_mesh[y][x+1][0],deformed_mesh[y][x+1][1]));
+// 			tarPts.push_back(Point2f(deformed_mesh[y+1][x+1][0],deformed_mesh[y+1][x+1][1]));
+// 		/*	FOR(i, 0, 4){
+// 				cout<<srcPts[i]<<" ";
+// 			}
+// 			cout<<endl;
+// 			FOR(i, 0, 4){
+// 				cout<<tarPts[i]<<" ";
+// 			}
+// 			cout<<endl;*/
+// 			//vector<int> good_idx;
+// 			Mat m = getPerspectiveTransform(srcPts, tarPts);
+// 			m.convertTo(bundled_cameras[y][x], CV_32FC1);
+
+// 			//cout<<bundled_cameras[y][x]<<endl;
+// 		}
+// 	}
+// }
 
 /*
 double ASAPSolver::solve_adaptive( vector<Point2f> & pIn, vector<Point2f> & pOut, Mat_<Vec2f> &deformed_mesh )

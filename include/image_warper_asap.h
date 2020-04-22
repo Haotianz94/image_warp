@@ -4,19 +4,21 @@
 #include "mesh.h"
 #include "image_warper.h"
 
-class ImageWarperASAP: public ImageWarper{
-private:
-	int _gridX, _gridY;
-	Mesh _mesh;
+// class ImageWarperASAP: public ImageWarper{
+// private:
+// 	int _gridX, _gridY;
 
-	bool _ok(cv::Mat &mask, int x, int y);
-	void _generateWarpMesh(Mesh & mesh);
+// public:
+// 	ImageWarperASAP();
+// 	~ImageWarperASAP();
+// 	cv::Mat ImageWarperASAP::warp(cv::Mat& imgIn, bool bShowGrid /*= 0*/, bool bBiggerBord /*= 0*/ );
 
-public:
-	ImageWarperASAP();
-	~ImageWarperASAP();
-	cv::Mat ImageWarperASAP::warp(cv::Mat& imgIn, bool bShowGrid /*= 0*/, bool bBiggerBord /*= 0*/ );
+// };
 
-};
+cv::Mat warpASAPInterface(cv::Mat, cv::Mat, cv::Mat);
+
+cv::Mat warpASAP(cv::Mat& imgIn, int gridX, int gridY);
+
+void testASAP();
 
 #endif

@@ -3,102 +3,71 @@
 
 // #include "CV_Util.h" //???
 using namespace cv;
+using namespace std;
 
-ImageWarperASAP::ImageWarperASAP()
+
+vector<Point2f> ctrPntSrc, ctrPntDst;
+
+Mat warpASAPInterface(Mat imgIn, Mat ctrPntSrcMat, Mat ctrPntDstMat)
 {
+	assert("Control point sets size does not match!" && ctrPntSrcMat.rows == ctrPntDstMat.rows);
+	ctrPntSrc.clear();
+	ctrPntDst.clear();
 
-}
-
-
-ImageWarperASAP::~ImageWarperASAP()
-{
-
-}
-
-
-void ImageWarperASAP::_generateWarpMesh()
-{
-	ASAPSolver asap(_frameW, _frameH, _gridX, _gridY);
-	asap.solve(_ctrPntSrc, _ctrPntDst, this->deformedMesh);
-}
-
-
-bool ImageWarperASAP::_ok(Mat &mask, int x, int y){
-	if(x<0||x>=mask.cols||y<0||y>=mask.rows)
-		return 0;
-	if(mask.at<uchar>(y,x)==255)
-		return 1;
-	return 0;
-}
-
-
-Mat ImageWarperASAP::warp(Mat& imgIn, 
-	bool bShowGrid /*= 0*/, 
-	bool bBiggerBord /*= 0*/ )
-{
-	int xBase = 200;
-	int yBase = 200;
-	if(!bBiggerBord){
-		xBase = 0;
-		yBase = 0;
+	for(int i = 0; i < ctrPntSrcMat.rows; i ++)
+	{	
+		ctrPntSrc.push_back(Point2f(ctrPntSrcMat.at<double>(i, 0), ctrPntSrcMat.at<double>(i, 1)));
+		ctrPntDst.push_back(Point2f(ctrPntDstMat.at<double>(i, 0), ctrPntDstMat.at<double>(i, 1)));
 	}
 
-	Mat imgOut(_frameH, _frameW, CV_8UC3, Scalar(0, 0, 0));
-	imgOut.create(2*yBase+imgIn.rows, 2*xBase+imgIn.cols,CV_8UC3);
-	imgOut.setTo(Vec3b(255,255,255));
-	Mat checkMaskOut = Mat::zeros(RC(imgOut),CV_8UC1);
-	FOR_PIXELS(y,x,imgIn){
-		vector<double> weight = m_mesh.getGrid(Point2f(x,y)).getWeights(Point2f(x,y));
-		int xth, yth;
-		m_mesh.getGridIdx(Point2f(x,y), xth, yth);
-		int newx = xBase+weight[0]*_mesh[yth][xth][0]+weight[1]*_mesh[yth+1][xth][0]\
-			+weight[2]*_mesh[yth][xth+1][0]+weight[3]*_mesh[yth+1][xth+1][0];
-		
-		int newy = yBase+weight[0]*_mesh[yth][xth][1]+weight[1]*_mesh[yth+1][xth][1]\
-			+weight[2]*_mesh[yth][xth+1][1]+weight[3]*_mesh[yth+1][xth+1][1];
-		/*cout<<"Ori: "<<x<<" "<<y<<endl;
-		FOR(j, 0, 4)
-			cout<<weight[j]<<" ";
-		cout<<endl;
-		cout<<newx<<" "<<newy<<endl;*/
-		if(newy>=0&& newy<imgOut.rows && newx>=0 && newx<imgOut.cols){
-			imgOut.at<Vec3b>(newy, newx) = imgIn.at<Vec3b>(y,x);
-			checkMaskOut.at<uchar>(newy, newx) = 255;
+	return warpASAP(imgIn);
+}
+
+
+Mat warpASAP(Mat& imgIn, int gridX, int gridY)
+{	
+	int frameW = imgIn.cols;
+	int frameH = imgIn.rows;
+
+	Mat_<Vec2f> deformedMesh;
+	Mat imgOut(frameH, frameW, CV_8UC3, Scalar(0, 0, 0));
+	
+	ASAPSolver asap(frameW, frameH, gridX, gridY);
+	asap.solve(ctrPntSrc, ctrPntDst, deformedMesh);
+
+	//draw new Mesh
+	
+	Mat deformedMeshCanvas(frameH, frameW, CV_8UC3, Scalar(255, 255, 255));
+	for(int y = 0; y < deformedMesh.rows; y++)
+		for(int x = 0; x < deformedMesh.cols; x++)
+		{
+			Vec2f pos = deformedMesh.at<Vec2f>(y, x);
+			circle(deformedMeshCanvas, Point(pos[0], pos[1]), 2, Scalar(0, 0, 0), -1);
 		}
-	}
-	int dir[8][2]={-1,-1, -1,0, -1,1, 0,-1, 0, 1, 1, -1, 1, 0, 1, 1};
-	FOR_PIXELS(y,x,imgOut){
-		if(checkMaskOut.at<uchar>(y,x) == 0){
-			FOR(j, 0, 8){
-				int xx = x+dir[j][0];
-				int yy = y+dir[j][1];
-				if (_ok(checkMaskOut, xx, yy)){
-					imgOut.at<Vec3b>(y,x)=imgOut.at<Vec3b>(yy,xx);
-					break;
-				}
-			}
-		}
-	}
-	if(bShowGrid){
+	imshow("deformedMesh", deformedMeshCanvas);
+	waitKey(0);
+	
+	asap.warpBruteForce(imgIn, deformedMesh, imgOut, true, false);
 
-		FOR_PIXELS(y,x, _mesh){
-			if(x<_mesh.cols-1){
-				line(imgOut, Point2f(xBase+_mesh[y][x][0],yBase+_mesh[y][x][1]), Point2f(xBase+_mesh[y][x+1][0],yBase+_mesh[y][x+1][1]), Scalar(255,255,255),3);
-			}
-			if(y<_mesh.rows-1){
-				line(imgOut, Point2f(xBase+_mesh[y][x][0],yBase+_mesh[y][x][1]), Point2f(xBase+_mesh[y+1][x][0],yBase+_mesh[y+1][x][1]), Scalar(255,255,255),3);
-			}
-			circle(imgOut, Point(xBase+_mesh[y][x][0],yBase+_mesh[y][x][1]),5, Scalar(0,0,255),-1);
-
-		}
-		
-	}
-
-	return imgOut
+	return imgOut;
 }
 
 
-void test()
+void testASAP()
 {
+	Mat imgIn = imread("./test.jpg");
+	std::cout << "Load image..." << std::endl;
 
+	ctrPntSrc.push_back(Point2f(100, 100));
+	ctrPntSrc.push_back(Point2f(100, 400));
+	ctrPntSrc.push_back(Point2f(400, 100));
+	ctrPntSrc.push_back(Point2f(400, 400));
+
+	ctrPntDst.push_back(Point2f(50, 50));
+	ctrPntDst.push_back(Point2f(50, 450));
+	ctrPntDst.push_back(Point2f(450, 50));
+	ctrPntDst.push_back(Point2f(450, 450));
+
+	Mat imgOut = warpASAP(imgIn, 10, 10);
+	imwrite("./warp_ASAP.jpg", imgOut);	
 }
